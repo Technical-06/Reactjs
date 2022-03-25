@@ -1,66 +1,46 @@
-// import React from "react";
-
-// function Login() {
-//   return "hello";
-//   // <div>
-//   //   <h3> Login </h3>
-//   //   <input
-//   //     placeholder="Email..."
-//   //     onChange={(event) => {
-//   //       setLoginEmail(event.target.value);
-//   //     }}
-//   //   />
-//   //   <input
-//   //     type="password"
-//   //     placeholder="Password..."
-//   //     // onChange={(event) => {
-//   //     //   setLoginPassword(event.target.value);
-//   //     // }}
-//   //   />
-
-//   //   <button onClick={login}> Login</button>
-//   // </div>
-// }
-
-// export default Login;
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button } from "react-bootstrap";
 import axios from "axios";
 import qs from "qs";
-import jwt from "jwt-decode";
 
 function Login() {
-  const [getToken, setToken] = useState(null);
+  const [getName, setName] = useState(null);
   const navigate = useNavigate();
   const emailRef = useRef("");
   const passwordRef = useRef("");
 
   useEffect(() => {
-    if (getToken !== null) {
+    if (getName !== null) {
       navigate("/");
     }
-  }, [getToken, navigate]);
+  }, [getName, navigate]);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const data = {
-      email: emailRef.current.value,
-      password: passwordRef.current.value,
+      userEmail: emailRef.current.value,
+      userPassword: passwordRef.current.value,
     };
 
-    axios
-      .post("/users/login", qs.stringify(data), {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      })
-      .then((res) => {
-        const userData = jwt(res.data.token);
-        localStorage.setItem("userName", userData.userName);
-        localStorage.setItem("token", res.data.token);
-        setToken(res.data.token);
-      });
+    const options = {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    };
+
+    const response = await fetch("http://localhost:6200/login", options);
+    const responseObj = await response.json();
+
+    if (responseObj.Error === "Login Failed") {
+      alert("Check your Passwword or Email");
+    } else {
+      localStorage.setItem("userName", responseObj.userName);
+      setName(responseObj.userName);
+    }
   }
   return (
     <form onSubmit={handleSubmit}>

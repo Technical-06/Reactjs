@@ -1,36 +1,39 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { Button, Navbar, Container } from "react-bootstrap";
 import ViewArticle from "./ViewArticle";
 
-function Home({ jwtToken, setJwtToken }) {
-  const navigate = useNavigate();
+function Home() {
   const [articles, setArticles] = useState(null);
-  const [removeToken, setRemoveToken] = useState(localStorage.getItem("token"));
+  const [removeUser, setRemoveUser] = useState(
+    localStorage.getItem("userName")
+  );
+  const navigate = useNavigate();
+
+  async function getBlogs() {
+    const response = await fetch("http://localhost:6200/ViewArticle");
+    const responseObj = await response.json();
+    console.log(responseObj);
+    setArticles(responseObj);
+  }
+
   useEffect(() => {
-    if (removeToken == null) {
+    if (removeUser == null) {
       navigate("/login");
     } else {
-      axios
-        .get("/users/viewarticles", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        })
-        .then((res) => setArticles(res.data));
+      getBlogs();
     }
-  }, [removeToken, navigate]);
+  }, [removeUser, navigate]);
+
   function handleLogout(e) {
     e.preventDefault();
     localStorage.removeItem("userName");
-    localStorage.removeItem("token");
-    setRemoveToken(null);
+    setRemoveUser(null);
   }
 
   return (
     <>
-      {localStorage.getItem("token") !== null && articles !== null ? (
+      {localStorage.getItem("userName") !== null && articles !== null ? (
         <>
           <nav>
             <div>
@@ -47,7 +50,7 @@ function Home({ jwtToken, setJwtToken }) {
             <ViewArticle
               key={index}
               title={article.title}
-              text={article.text}
+              text={article.body}
               author={article.author}
             />
           ))}
